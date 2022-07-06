@@ -1,0 +1,6 @@
+daniel@daniel-VirtualBox:~/Downloads/Esqueleto-Gerenciamento-de-Memoria$ gcc main.c -o ma
+daniel@daniel-VirtualBox:~/Downloads/Esqueleto-Gerenciamento-de-Memoria$ ./ma fifo 2 2 3 
+ 
+algoritimo fifo
+ clock_freq 2read,8,4
+ad0
