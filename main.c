@@ -44,12 +44,37 @@ typedef struct {
 
 int fifo(int8_t** page_table, int num_pages, int prev_page,
          int fifo_frm, int num_frames, int clock) {
+
+            int i;
+            for (i=0;i<num_pages;i++){
+                if(page_table[i][PT_FRAMEID]==fifo_frm){
+                    return i;
+                }
+
+            }
     return -1;
 }
 
 int second_chance(int8_t** page_table, int num_pages, int prev_page,
                   int fifo_frm, int num_frames, int clock) {
-    return -1;
+            int i;
+            for (i=0;i<num_pages;i++){
+                if(page_table[i][PT_FRAMEID]==fifo_frm ){
+
+                    if(page_table[i][PT_REFERENCE_BIT]==1){
+
+                        page_table[i][PT_REFERENCE_BIT]=0;
+
+                        prev_page=i;
+                        break;
+                    }else{
+                        return i;
+                    }
+                   
+                }
+
+            }
+  return fifo(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
 }
 
 int nru(int8_t** page_table, int num_pages, int prev_page,
@@ -108,21 +133,21 @@ int simulate(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
 
     int next_frame_addr;
     if ((*num_free_frames) > 0) { // Ainda temos memória física livre!
-        next_frame_addr = find_next_frame(physical_memory, num_free_frames,
+        next_frame_addr = find_next_frame(physical_memory, num_free_frames,//acaha o proximo frame  livre na fisica
                                           num_frames, prev_free);
         if (*fifo_frm == -1)
-            *fifo_frm = next_frame_addr;
-        *num_free_frames = *num_free_frames - 1;
+            *fifo_frm = next_frame_addr;//pega o frame livre 
+        *num_free_frames = *num_free_frames - 1;//redu numero de farames livres 
     } else { // Precisamos liberar a memória!
-        assert(*num_free_frames == 0);
-        int to_free = evict(page_table, num_pages, *prev_page, *fifo_frm,
+        assert(*num_free_frames == 0);//true continua false para 
+        int to_free = evict(page_table, num_pages, *prev_page, *fifo_frm,//evict algoritimo de entrada retorna a memoria  virtual livre 
                             num_frames, clock);
         assert(to_free >= 0);
         assert(to_free < num_pages);
         assert(page_table[to_free][PT_MAPPED] != 0);
 
-        next_frame_addr = page_table[to_free][PT_FRAMEID];
-        *fifo_frm = (*fifo_frm + 1) % num_frames;
+        next_frame_addr = page_table[to_free][PT_FRAMEID];//local de referencia na real 
+        *fifo_frm = (*fifo_frm + 1) % num_frames;//zera se for a ultima 
         // Libera pagina antiga
         page_table[to_free][PT_FRAMEID] = -1;
         page_table[to_free][PT_MAPPED] = 0;
@@ -133,7 +158,7 @@ int simulate(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
     }
 
     // Coloca endereço físico na tabela de páginas!
-    int8_t *page_table_data = page_table[virt_addr];
+    int8_t *page_table_data = page_table[virt_addr];//cpiando uma linha da matrix virtual 
     page_table_data[PT_FRAMEID] = next_frame_addr;
     page_table_data[PT_MAPPED] = 1;
     if (access_type == WRITE) {
@@ -143,7 +168,7 @@ int simulate(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
     page_table_data[PT_REFERENCE_MODE] = (int8_t) access_type;
     *prev_page = virt_addr;
 
-    if (clock == 1) {
+    if (clock == 1) {//zera todo mundo a cada giro do relogio 
         for (int i = 0; i < num_pages; i++)
             page_table[i][PT_REFERENCE_BIT] = 0;
     }
@@ -159,7 +184,7 @@ void run(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
     int i = 0;
     int clock = 0;
     int faults = 0;
-    while (scanf("%d", &virt_addr) == 1) {
+    while (scanf("%d", &virt_addr) == 1) {//endereço da memoria virtual 
         getchar();
         scanf("%c", &access_type);
         clock = ((i+1) % clock_freq) == 0;
@@ -182,8 +207,8 @@ int parse(char *opt) {
 }
 
 void read_header(int *num_pages, int *num_frames) {
-   printf("\nread");
-   scanf(" nnnumero de pagias %d  numeros de frames%d\n", num_pages, num_frames);
+   //printf("\nread");
+   scanf(" %d  %d\n", num_pages, num_frames);
     //scanf(" nnnumero de pagias %d ",num_pages);
     //scanf(" nnnumero de frames %d ",num_frames);
  
@@ -196,13 +221,13 @@ int main(int argc, char **argv) {
     }
     
     
- printf("%s",argv[0]);
+ //printf("%s",argv[0]);
     char *algorithm = argv[1];
-    printf(" \nalgoritimo %s",algorithm);
+   // printf(" \nalgoritimo %s",algorithm);
    
     
     int clock_freq = parse(argv[2]);
-    printf("\n clock_freq %d",clock_freq);
+    //printf("\n clock_freq %d",clock_freq);
     int num_pages;
     int num_frames;
     read_header(&num_pages, &num_frames);
@@ -215,8 +240,8 @@ int main(int argc, char **argv) {
             {"aging", *aging},
             {"random", *random_page}
     };
-    printf("ad");
-    printf("num pages%d",num_pages);
+   // printf("ad");
+  //  printf("num pages%d",num_pages);
         int n_policies = sizeof(policies) / sizeof(policies[0]);
     eviction_f evict = NULL;
     for (int i = 0; i < n_policies; i++) {
@@ -247,7 +272,7 @@ int main(int argc, char **argv) {
     // quais frames/molduras estão livre. 0 == livre!
     int *physical_memory = (int *) malloc(num_frames * sizeof(int));
     for (int i = 0; i < num_frames; i++) {
-        physical_memory[i] = 0;
+        physical_memory[i] = 0;//zera memoria fisica 
     }
     int num_free_frames = num_frames;
     int prev_free = -1;
