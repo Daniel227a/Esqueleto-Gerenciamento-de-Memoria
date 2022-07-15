@@ -74,7 +74,7 @@ int second_chance(int8_t** page_table, int num_pages, int prev_page,
                 }
 
             }
-  return fifo(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
+ return second_chance(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
 }
 
 int nru(int8_t** page_table, int num_pages, int prev_page,
