@@ -67,15 +67,19 @@ int second_chance(int8_t** page_table, int num_pages, int prev_page,
                 page_table[i][PT_REFERENCE_BIT]=0;
 
                 prev_page=i;
+                fifo_frm = (fifo_frm + 1) % num_frames;
                 break;
             }else{
                 return i;
+                //return second_chance(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
             }
             
         }
 
     }
     return second_chance(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
+    //return second_chance(page_table, num_pages, prev_page,fifo_frm, num_frames,  clock);
+    //return i;
 }
 
 int nru(int8_t** page_table, int num_pages, int prev_page,
@@ -151,21 +155,43 @@ int nru(int8_t** page_table, int num_pages, int prev_page,
 
 int aging(int8_t** page_table, int num_pages, int prev_page,
           int fifo_frm, int num_frames, int clock) {
-            int temp=0;
-            for (int i=0;i<num_pages;i++){
-                if(page_table[i][PT_AGING_COUNTER]<page_table[temp][PT_AGING_COUNTER] && page_table[i][PT_MAPPED]==1){
+            int mapeada=-1;
+            for(int i=0;i<num_pages;i++){
+                if(page_table[i][PT_MAPPED]==1){
+                    mapeada =i;
+                    if(mapeada!=-1){
+                        for (int j=i;j<num_pages;j++){
+                            if((page_table[j][PT_MAPPED]==1)&&page_table[j][PT_AGING_COUNTER]<page_table[mapeada][PT_AGING_COUNTER]){
 
-                    temp=i;
+                                mapeada=j;
+                            }
+                        }
+                    return mapeada;
+                    }
                 }
-                return temp;
             }
-            
 
     return -1;
 }
 
 int mfu(int8_t** page_table, int num_pages, int prev_page,
           int fifo_frm, int num_frames, int clock) {
+            int mapeada=-1;
+            for(int i=0;i<num_pages;i++){
+                if(page_table[i][PT_MAPPED]==1){
+                    mapeada =i;
+                    if(mapeada!=-1){
+                        for (int j=i;j<num_pages;j++){
+                            if((page_table[j][PT_MAPPED]==1)&&page_table[j][PT_AGING_COUNTER]<page_table[mapeada][PT_AGING_COUNTER]){
+
+                                mapeada=j;
+                            }
+                        }
+                    return mapeada;
+                    }
+                }
+            }
+
     return -1;
 }
 
@@ -197,7 +223,7 @@ int find_next_frame(int *physical_memory, int *num_free_frames,
 int simulate(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
              int *physical_memory, int *num_free_frames, int num_frames,
              int *prev_free, int virt_addr, char access_type,
-             eviction_f evict, int clock) {
+             eviction_f evict, int clock ,int t) {
     if (virt_addr >= num_pages || virt_addr < 0) {
         printf("Invalid access \n");
         exit(1);
@@ -244,25 +270,19 @@ int simulate(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
     page_table_data[PT_REFERENCE_BIT] = 1;
     page_table_data[PT_REFERENCE_MODE] = (int8_t) access_type;
     *prev_page = virt_addr;
-
+    
     if (clock == 1) {//zera todo mundo a cada giro do relogio 
 
         for (int i=0;i<num_pages;i++){
-            if(page_table[i][PT_REFERENCE_BIT]==1){
-
-                page_table[i][PT_AGING_COUNTER]+=1;
-
-            }else{
-                 if(page_table[i][PT_AGING_COUNTER]!=0){
-                    page_table[i][PT_AGING_COUNTER]=-1;
-                 }
+            if(page_table[i][PT_REFERENCE_BIT]==1 ){
+             int k;
+             k=pow(2,t);
+              page_table[i][PT_AGING_COUNTER]=page_table[i][PT_AGING_COUNTER]+k;
             }
-
+             page_table[i][PT_REFERENCE_BIT] = 0;
         }
-        for (int i = 0; i < num_pages; i++)
-            page_table[i][PT_REFERENCE_BIT] = 0;
     }
-
+    
     return 1; // Page Fault!
 }
 //pega ddo arquivo 
@@ -274,13 +294,16 @@ void run(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
     int i = 0;
     int clock = 0;
     int faults = 0;
+    int t;
     while (scanf("%d", &virt_addr) == 1) {//endereço da memoria virtual 
         getchar();
         scanf("%c", &access_type);
+        t=i;
         clock = ((i+1) % clock_freq) == 0;
         faults += simulate(page_table, num_pages, prev_page, fifo_frm,
                            physical_memory, num_free_frames, num_frames, prev_free,
-                           virt_addr, access_type, evict, clock);
+                           virt_addr, access_type, evict, clock ,t);
+        
         i++;
     }
     printf("%d\n", faults);
@@ -328,6 +351,7 @@ int main(int argc, char **argv) {
             {"second_chance", *second_chance},
             {"nru", *nru},
             {"aging", *aging},
+            {"mfu",*mfu},
             {"random", *random_page}
     };
    // printf("ad");
