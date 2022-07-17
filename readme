@@ -1,0 +1,20 @@
+configuraçoes :
+Ubuntu 22.04 LTS 64 bits
+versão:42.0
+
+
+git : https://github.com/Daniel227a/Esqueleto-Gerenciamento-de-Memoria.git
+
+compilaçao : gcc -Wall  main.c -o vmm -lm
+ o comando -lm deve ser inserido na compilação para que a biblioteca <math.h> funcione
+
+exemplo de execuçao :./vmm fifo 10 < teste5.dat
+
+bugs:
+    caso o comando -lm não seja ecolocado na compilação a função pow() não executara 
+    
+    o nome do algoritmo deve ser digitado corretamente 
+    
+    nomes aceitos : 
+    fifo,second_chance,nru,aging,mfu,random
+    
