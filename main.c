@@ -45,7 +45,7 @@ typedef struct {
 
 int fifo(int8_t** page_table, int num_pages, int prev_page,
          int fifo_frm, int num_frames, int clock) {
-    printf("%d\n",clock);
+    //printf("%d\n",clock);
     int i;
     for (i=0;i<num_pages;i++){
         if(page_table[i][PT_FRAMEID]==fifo_frm){
@@ -182,7 +182,7 @@ int mfu(int8_t** page_table, int num_pages, int prev_page,
                     mapeada =i;
                     if(mapeada!=-1){
                         for (int j=i;j<num_pages;j++){
-                            if((page_table[j][PT_MAPPED]==1)&&page_table[j][PT_AGING_COUNTER]<page_table[mapeada][PT_AGING_COUNTER]){
+                            if((page_table[j][PT_MAPPED]==1)&&page_table[j][PT_AGING_COUNTER]>page_table[mapeada][PT_AGING_COUNTER]){
 
                                 mapeada=j;
                             }
