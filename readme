@@ -11,7 +11,7 @@ compilaçao : gcc -Wall  main.c -o vmm -lm
 exemplo de execuçao :./vmm fifo 10 < teste5.dat
 
 bugs:
-    caso o comando -lm não seja ecolocado na compilação a função pow() não executara 
+    caso o comando -lm não seja colocado na compilação a função pow() não executara 
     
     o nome do algoritmo deve ser digitado corretamente 
     
